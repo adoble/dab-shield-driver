@@ -1,0 +1,11 @@
+[package]
+name    = "dab-shield-driver"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+embedded-hal = "1.0.0"
+si468x-pac   = { path = "si468x-pac" }
+
+[dev-dependencies]
+embedded-hal-mock = "0.11.1"
