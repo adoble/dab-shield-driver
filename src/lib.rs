@@ -5,14 +5,15 @@ use embedded_hal::digital::{Error, InputPin, OutputPin};
 /// Driver for the SI468x digital radio.
 /// This driver only works for the DAB part.
 ///  
-use embedded_hal::spi::SpiDevice;
+use embedded_hal::spi::{Operation, SpiDevice};
 
 use dab_shield_error::DabShieldError;
 use frequency_list::FrequencyList;
 use properties::DabProperties;
+use si468x_pac::host_image_data_loader::{self, HostImageDataLoader};
 use si468x_pac::ClockMode;
 //use si468x_pac::boot::{BootRequest, BootResponse};
-//use si468x_pac::error::DeviceError;
+use si468x_pac::error::DeviceError;
 //use si468x_pac::flash_load::{FlashLoadRequest, FlashLoadResponse};
 //use si468x_pac::types::*;
 use types::FrequencyIndex;
@@ -24,9 +25,14 @@ pub mod dab_shield_error;
 pub mod frequency_list;
 mod info;
 mod properties;
+mod rom_patch_016;
 mod types;
 
 const DAB_FLASH_LOAD_ADDRESS: u32 = 0x6000;
+/// The default size of the buffer that can be used for SPI transfers.
+/// This is microcontroller specific and can be changed using
+/// `set_spi_buffer:size()`
+const DEFAULT_SPI_BUF_SIZE: usize = 512;
 
 pub struct DabShieldDriver<SPI, INT, RST, EN, DLY> {
     spi: SPI,
@@ -36,6 +42,8 @@ pub struct DabShieldDriver<SPI, INT, RST, EN, DLY> {
     delay: DLY,
 
     frequency_index: Option<FrequencyIndex>,
+
+    spi_buffer_size: usize,
 }
 
 impl<SPI, INT, RST, EN, DLY> DabShieldDriver<SPI, INT, RST, EN, DLY>
@@ -54,6 +62,7 @@ where
             power_enable,
             delay,
             frequency_index: None,
+            spi_buffer_size: DEFAULT_SPI_BUF_SIZE,
         }
     }
 
@@ -126,7 +135,7 @@ where
             .map_err(|err| DabShieldError::Spi(err))?;
 
         // si468x_host_load();
-        todo!();
+        self.host_load()?;
         // si468x_load_init();
         todo!();
     }
@@ -170,6 +179,21 @@ where
         // Enable XPAD data
         self.set_property(DabProperties::DabXpadEnable, 0x0007)?;
 
+        Ok(())
+    }
+
+    fn host_load(&mut self) -> Result<(), DabShieldError> {
+        // As ddgen does not support the "chunked" data transfer pattern, do a direct implementation of this.
+        let host_image_chunks = rom_patch_016::ROM_PATCH_016.chunks(self.spi_buffer_size);
+        let opcode: u8 = 0x04;
+        for partial_host_image in host_image_chunks {
+            self.spi
+                .transaction(&mut [
+                    Operation::Write(&[opcode, 0x00, 0x00, 0x00]),
+                    Operation::Write(partial_host_image),
+                ])
+                .map_err(|_| DabShieldError::Spi(DeviceError::Transmit))?;
+        }
         Ok(())
     }
 
@@ -225,6 +249,14 @@ where
 
     //     Ok(buf)
     // }
+
+    /// Set the SPI buffer size to the maximum size allowed by the processor.
+    /// This can only be called before calling `init()`.
+    // TODO use state pattern here.
+    // TODO this is currently unsafe as the buffer size can be set to a very low value.
+    pub fn set_spi_buffer_size(&mut self, buffer_size: usize) {
+        self.spi_buffer_size = buffer_size;
+    }
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -236,9 +268,69 @@ enum DriverError<SPI> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use embedded_hal::digital::{InputPin, OutputPin};
+
+    use embedded_hal_mock::eh1::{
+        digital::{Mock as PinMock, State as PinState, Transaction as PinTransaction},
+        MockError,
+    };
+
+    use embedded_hal::spi::SpiBus;
+    use embedded_hal_mock::eh1::spi::{Mock as SpiMock, Transaction as SpiTransaction};
+    //use embedded_hal_nb::spi::FullDuplex;
+
+    use embedded_hal_mock::eh1::delay::{CheckedDelay, NoopDelay, StdSleep, Transaction};
+    use host_image_data_loader::ROM_PATCH_016;
+    use std::time::Duration;
+
+    use pretty_assertions::{assert_eq, assert_ne};
 
     #[test]
-    fn a_test_() {
-        // TODO
+    fn test_host_load() {
+        let spi_expected_image_data = rom_patch_016::ROM_PATCH_016;
+        let spi_buffer_size = 2048;
+        let spi_expectations = [
+            SpiTransaction::transaction_start(),
+            SpiTransaction::write_vec(vec![0x04, 0x00, 0x00, 0x00]),
+            SpiTransaction::write_vec(Vec::from(&spi_expected_image_data[0..spi_buffer_size])),
+            SpiTransaction::transaction_end(),
+            SpiTransaction::transaction_start(),
+            SpiTransaction::write_vec(vec![0x04, 0x00, 0x00, 0x00]),
+            SpiTransaction::write_vec(Vec::from(
+                &spi_expected_image_data[spi_buffer_size..2 * spi_buffer_size],
+            )),
+            SpiTransaction::transaction_end(),
+            SpiTransaction::transaction_start(),
+            SpiTransaction::write_vec(vec![0x04, 0x00, 0x00, 0x00]),
+            SpiTransaction::write_vec(Vec::from(&spi_expected_image_data[2 * spi_buffer_size..])),
+            SpiTransaction::transaction_end(),
+        ];
+
+        let pin_expectations = []; // Pins are not exercised in this test
+
+        let mut spi = SpiMock::new(&spi_expectations);
+
+        let mut interrupt_pin = PinMock::new(&pin_expectations);
+        let mut reset_pin = PinMock::new(&pin_expectations);
+        let mut power_enable = PinMock::new(&pin_expectations);
+
+        let mut delay = NoopDelay::new();
+
+        // (spi: SPI, interrupt_pin: INT, reset_pin: RST, power_enable: EN, delay: DLY
+        let mut driver = DabShieldDriver::new(
+            &mut spi,
+            &mut interrupt_pin,
+            &mut reset_pin,
+            &mut power_enable,
+            &mut delay,
+        );
+        driver.set_spi_buffer_size(spi_buffer_size);
+
+        driver.host_load().unwrap();
+
+        spi.done();
+        interrupt_pin.done();
+        reset_pin.done();
+        power_enable.done();
     }
 }
