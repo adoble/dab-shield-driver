@@ -1,6 +1,6 @@
 /// Provider iterator for the ROM patch data
 
-const ROM_PATCH_016: [u8; 5796] = [
+pub const ROM_PATCH_016: [u8; 5796] = [
     0x10, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x78, 0x56, 0x34, 0x12,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xfd, 0x84, 0xcb, 0x6c, 0x01, 0x00, 0x00, 0x00,
     0xef, 0xbe, 0xad, 0xde, 0x48, 0x16, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00,
@@ -369,11 +369,21 @@ const ROM_PATCH_016: [u8; 5796] = [
 #[derive(Debug, PartialEq, Copy, Clone, Default)]
 pub struct HostImageDataLoader {
     index: usize,
+    chunk_index: usize,
+    chunk_size: usize,
 }
 
 impl HostImageDataLoader {
     pub fn new() -> HostImageDataLoader {
-        HostImageDataLoader { index: 0 }
+        HostImageDataLoader {
+            index: 0,
+            chunk_index: 0,
+            chunk_size: 0,
+        }
+    }
+
+    pub fn chunks(&self, chunk_size: usize) -> impl Iterator<Item = &[u8]> {
+        ROM_PATCH_016.chunks(chunk_size)
     }
 }
 
@@ -381,7 +391,7 @@ impl Iterator for HostImageDataLoader {
     type Item = u8;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let value = if (self.index < ROM_PATCH_016.len()) {
+        let value = if self.index < ROM_PATCH_016.len() {
             Some(ROM_PATCH_016[self.index])
         } else {
             None
@@ -389,5 +399,21 @@ impl Iterator for HostImageDataLoader {
 
         self.index += 1;
         value
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_host_image_next() {
+        let loader = HostImageDataLoader::new();
+        let mut idx = 0;
+        for v in loader {
+            assert_eq!(ROM_PATCH_016[idx], v);
+            idx += 1;
+        }
+
+        assert_eq!(idx, 5796);
     }
 }

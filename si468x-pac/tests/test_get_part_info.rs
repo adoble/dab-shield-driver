@@ -1,8 +1,8 @@
 #![allow(unused_imports)]
-use si468x::response::{ResponseBit, ResponseWord};
-use si468x::transmit::Transmit;
-use si468x::DeviceError;
-use si468x::{command::Command, deserialize::Deserialize, serialize::Serialize};
+use si468x_pac::response::{ResponseBit, ResponseWord};
+use si468x_pac::transmit::Transmit;
+use si468x_pac::DeviceError;
+use si468x_pac::{command::Command, deserialize::Deserialize, serialize::Serialize};
 
 //use embedded_hal::digital::{InputPin, OutputPin, StatefulOutputPin};
 //use embedded_hal::spi::{Operation, SpiDevice};
@@ -10,8 +10,8 @@ use embedded_hal::spi::SpiDevice;
 
 use embedded_hal_mock::eh1::spi::{Mock as SpiMock, Transaction as SpiTransaction};
 
-use si468x::get_part_info::{GetPartInfoRequest, GetPartInfoResponse};
-use si468x::header::Header;
+use si468x_pac::get_part_info::{GetPartInfoRequest, GetPartInfoResponse};
+use si468x_pac::header::Header;
 
 #[test]
 // Single poll
@@ -20,7 +20,7 @@ fn test_polled_request_1() {
 
     let expected_header = Header {
         dsrvint: false,
-        pup_state: si468x::PowerUpState::AppRunning,
+        pup_state: si468x_pac::PowerUpState::AppRunning,
         devntint: false,
         dsp_err: false,
         error_nr: false,

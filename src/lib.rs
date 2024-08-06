@@ -117,7 +117,7 @@ where
         // spiBuf[15] = 0x00;   arg15 = 0x00 (literal)
 
         // Power up
-        si468x_pac::power_up(|req| {
+        let response = si468x_pac::power_up(|req| {
             req.cts_is_enabled = false;
             req.clock_mode = ClockMode::XtalMode;
             req.tr_size = 7;
@@ -129,6 +129,8 @@ where
         .send(&mut self.spi)
         .map_err(|err| DabShieldError::Spi(err))?;
 
+        dab_shield_error::handle_command_error(&mut self.spi, response.header)?;
+
         // si468x_load_init();
         si468x_pac::load_init(|_| {})
             .send(&mut self.spi)
@@ -137,6 +139,7 @@ where
         // si468x_host_load();
         self.host_load()?;
         // si468x_load_init();
+        self.load_init()?;
         todo!();
     }
 
@@ -194,6 +197,13 @@ where
                 ])
                 .map_err(|_| DabShieldError::Spi(DeviceError::Transmit))?;
         }
+        Ok(())
+    }
+
+    fn load_init(&mut self) -> Result<(), DabShieldError> {
+        si468x_pac::load_init(|_| {})
+            .send(&mut self.spi)
+            .map_err(|e| DabShieldError::Spi(e))?;
         Ok(())
     }
 

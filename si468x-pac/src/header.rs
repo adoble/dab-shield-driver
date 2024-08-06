@@ -14,23 +14,23 @@ use crate::types::*;
 
 #[derive(Debug, PartialEq, Copy, Clone, Default)]
 pub struct Header {
-    /// Digital radio link change interrupt indicator.
-    pub dacqint: bool,
     /// An enabled data component of one of the digital services requires attention.
     pub dsrvint: bool,
-    /// Digital radio event change interrupt indicator.
-    pub devntint: bool,
-    pub arb_error: bool,
-    pub error_nr: bool,
-    pub repo_fatal_error: bool,
     /// Seek / tune complete
     pub stcint: bool,
-    pub err_cmd: bool,
-    pub cts: bool,
-    pub pup_state: PowerUpState,
     /// The DSP has encountered a frame overrun.
     pub dsp_err: bool,
+    pub error_nr: bool,
+    pub pup_state: PowerUpState,
+    pub cts: bool,
+    pub repo_fatal_error: bool,
+    pub arb_error: bool,
+    pub err_cmd: bool,
+    /// Digital radio link change interrupt indicator.
+    pub dacqint: bool,
     pub cmdo_fatal_error: bool,
+    /// Digital radio event change interrupt indicator.
+    pub devntint: bool,
 }
 
 impl Serialize for Header {

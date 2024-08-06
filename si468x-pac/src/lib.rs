@@ -6,28 +6,29 @@ pub use crate::error::DeviceError;
 
 pub mod header;
 
-pub mod dab_get_audio_info;
-pub mod dab_get_service_info;
-pub mod get_time;
-pub mod read_offset;
+pub mod flash_load;
+pub mod dab_get_event_status;
+pub mod dab_get_ensemble_info;
+pub mod dab_get_digital_service_list;
+pub mod power_up;
+pub mod dab_set_freq_list;
+pub mod get_part_info;
+pub mod set_property;
+pub mod stop_digital_service;
+pub mod dab_get_subchan_info;
 pub mod boot;
 pub mod dab_tune_freq;
-pub mod stop_digital_service;
-pub mod host_load;
-pub mod dab_get_ensemble_info;
-pub mod dab_get_event_status;
-pub mod flash_load;
-pub mod get_sys_state;
-pub mod get_part_info;
-pub mod dab_digrad_status;
 pub mod get_func_info;
-pub mod dab_get_subchan_info;
 pub mod load_init;
-pub mod dab_set_freq_list;
+pub mod dab_get_service_info;
+pub mod read_offset;
+pub mod dab_digrad_status;
+pub mod get_time;
 pub mod start_digital_service;
-pub mod power_up;
-pub mod set_property;
-pub mod dab_get_digital_service_list;
+pub mod host_load;
+pub mod rd_reply;
+pub mod dab_get_audio_info;
+pub mod get_sys_state;
 
 pub mod error;
 pub mod types;
@@ -51,30 +52,72 @@ pub mod host_image_data_loader;pub fn create_request<R, F>(f: F) -> R
 }
 
 /// Entry points
-pub fn dab_get_audio_info<F>(f:F) -> dab_get_audio_info::DabGetAudioInfoRequest
+pub fn flash_load<F>(f:F) -> flash_load::FlashLoadRequest
 where
-    F: Fn(&mut dab_get_audio_info::DabGetAudioInfoRequest),
+    F: Fn(&mut flash_load::FlashLoadRequest),
 {
     create_request(f)
 }
 
-pub fn dab_get_service_info<F>(f:F) -> dab_get_service_info::DabGetServiceInfoRequest
+pub fn dab_get_event_status<F>(f:F) -> dab_get_event_status::DabGetEventStatusRequest
 where
-    F: Fn(&mut dab_get_service_info::DabGetServiceInfoRequest),
+    F: Fn(&mut dab_get_event_status::DabGetEventStatusRequest),
 {
     create_request(f)
 }
 
-pub fn get_time<F>(f:F) -> get_time::GetTimeRequest
+pub fn dab_get_ensemble_info<F>(f:F) -> dab_get_ensemble_info::DabGetEnsembleInfoRequest
 where
-    F: Fn(&mut get_time::GetTimeRequest),
+    F: Fn(&mut dab_get_ensemble_info::DabGetEnsembleInfoRequest),
 {
     create_request(f)
 }
 
-pub fn read_offset<F>(f:F) -> read_offset::ReadOffsetRequest
+pub fn dab_get_digital_service_list<F>(f:F) -> dab_get_digital_service_list::DabGetDigitalServiceListRequest
 where
-    F: Fn(&mut read_offset::ReadOffsetRequest),
+    F: Fn(&mut dab_get_digital_service_list::DabGetDigitalServiceListRequest),
+{
+    create_request(f)
+}
+
+pub fn power_up<F>(f:F) -> power_up::PowerUpRequest
+where
+    F: Fn(&mut power_up::PowerUpRequest),
+{
+    create_request(f)
+}
+
+pub fn dab_set_freq_list<F>(f:F) -> dab_set_freq_list::DabSetFreqListRequest
+where
+    F: Fn(&mut dab_set_freq_list::DabSetFreqListRequest),
+{
+    create_request(f)
+}
+
+pub fn get_part_info<F>(f:F) -> get_part_info::GetPartInfoRequest
+where
+    F: Fn(&mut get_part_info::GetPartInfoRequest),
+{
+    create_request(f)
+}
+
+pub fn set_property<F>(f:F) -> set_property::SetPropertyRequest
+where
+    F: Fn(&mut set_property::SetPropertyRequest),
+{
+    create_request(f)
+}
+
+pub fn stop_digital_service<F>(f:F) -> stop_digital_service::StopDigitalServiceRequest
+where
+    F: Fn(&mut stop_digital_service::StopDigitalServiceRequest),
+{
+    create_request(f)
+}
+
+pub fn dab_get_subchan_info<F>(f:F) -> dab_get_subchan_info::DabGetSubchanInfoRequest
+where
+    F: Fn(&mut dab_get_subchan_info::DabGetSubchanInfoRequest),
 {
     create_request(f)
 }
@@ -93,72 +136,9 @@ where
     create_request(f)
 }
 
-pub fn stop_digital_service<F>(f:F) -> stop_digital_service::StopDigitalServiceRequest
-where
-    F: Fn(&mut stop_digital_service::StopDigitalServiceRequest),
-{
-    create_request(f)
-}
-
-pub fn host_load<F>(f:F) -> host_load::HostLoadRequest
-where
-    F: Fn(&mut host_load::HostLoadRequest),
-{
-    create_request(f)
-}
-
-pub fn dab_get_ensemble_info<F>(f:F) -> dab_get_ensemble_info::DabGetEnsembleInfoRequest
-where
-    F: Fn(&mut dab_get_ensemble_info::DabGetEnsembleInfoRequest),
-{
-    create_request(f)
-}
-
-pub fn dab_get_event_status<F>(f:F) -> dab_get_event_status::DabGetEventStatusRequest
-where
-    F: Fn(&mut dab_get_event_status::DabGetEventStatusRequest),
-{
-    create_request(f)
-}
-
-pub fn flash_load<F>(f:F) -> flash_load::FlashLoadRequest
-where
-    F: Fn(&mut flash_load::FlashLoadRequest),
-{
-    create_request(f)
-}
-
-pub fn get_sys_state<F>(f:F) -> get_sys_state::GetSysStateRequest
-where
-    F: Fn(&mut get_sys_state::GetSysStateRequest),
-{
-    create_request(f)
-}
-
-pub fn get_part_info<F>(f:F) -> get_part_info::GetPartInfoRequest
-where
-    F: Fn(&mut get_part_info::GetPartInfoRequest),
-{
-    create_request(f)
-}
-
-pub fn dab_digrad_status<F>(f:F) -> dab_digrad_status::DabDigradStatusRequest
-where
-    F: Fn(&mut dab_digrad_status::DabDigradStatusRequest),
-{
-    create_request(f)
-}
-
 pub fn get_func_info<F>(f:F) -> get_func_info::GetFuncInfoRequest
 where
     F: Fn(&mut get_func_info::GetFuncInfoRequest),
-{
-    create_request(f)
-}
-
-pub fn dab_get_subchan_info<F>(f:F) -> dab_get_subchan_info::DabGetSubchanInfoRequest
-where
-    F: Fn(&mut dab_get_subchan_info::DabGetSubchanInfoRequest),
 {
     create_request(f)
 }
@@ -170,9 +150,30 @@ where
     create_request(f)
 }
 
-pub fn dab_set_freq_list<F>(f:F) -> dab_set_freq_list::DabSetFreqListRequest
+pub fn dab_get_service_info<F>(f:F) -> dab_get_service_info::DabGetServiceInfoRequest
 where
-    F: Fn(&mut dab_set_freq_list::DabSetFreqListRequest),
+    F: Fn(&mut dab_get_service_info::DabGetServiceInfoRequest),
+{
+    create_request(f)
+}
+
+pub fn read_offset<F>(f:F) -> read_offset::ReadOffsetRequest
+where
+    F: Fn(&mut read_offset::ReadOffsetRequest),
+{
+    create_request(f)
+}
+
+pub fn dab_digrad_status<F>(f:F) -> dab_digrad_status::DabDigradStatusRequest
+where
+    F: Fn(&mut dab_digrad_status::DabDigradStatusRequest),
+{
+    create_request(f)
+}
+
+pub fn get_time<F>(f:F) -> get_time::GetTimeRequest
+where
+    F: Fn(&mut get_time::GetTimeRequest),
 {
     create_request(f)
 }
@@ -184,23 +185,30 @@ where
     create_request(f)
 }
 
-pub fn power_up<F>(f:F) -> power_up::PowerUpRequest
+pub fn host_load<F>(f:F) -> host_load::HostLoadRequest
 where
-    F: Fn(&mut power_up::PowerUpRequest),
+    F: Fn(&mut host_load::HostLoadRequest),
 {
     create_request(f)
 }
 
-pub fn set_property<F>(f:F) -> set_property::SetPropertyRequest
+pub fn rd_reply<F>(f:F) -> rd_reply::RdReplyRequest
 where
-    F: Fn(&mut set_property::SetPropertyRequest),
+    F: Fn(&mut rd_reply::RdReplyRequest),
 {
     create_request(f)
 }
 
-pub fn dab_get_digital_service_list<F>(f:F) -> dab_get_digital_service_list::DabGetDigitalServiceListRequest
+pub fn dab_get_audio_info<F>(f:F) -> dab_get_audio_info::DabGetAudioInfoRequest
 where
-    F: Fn(&mut dab_get_digital_service_list::DabGetDigitalServiceListRequest),
+    F: Fn(&mut dab_get_audio_info::DabGetAudioInfoRequest),
+{
+    create_request(f)
+}
+
+pub fn get_sys_state<F>(f:F) -> get_sys_state::GetSysStateRequest
+where
+    F: Fn(&mut get_sys_state::GetSysStateRequest),
 {
     create_request(f)
 }

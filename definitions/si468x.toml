@@ -30,6 +30,41 @@ arb_error        = { bits = "3[1]" }
 error_nr         = { bits = "3[0]" }
 # rsvd_stat: Reserved for future use 
 
+[commands.RD_REPLY]
+opcode = 0x00
+description = """RD_REPLY command must be called to return the status byte and data for the last command sent to the device.
+This command is also used to poll the status byte as needed."""
+
+[commands.RD_REPLY.request]
+# Only the opcode is sent
+
+[commands.RD_REPLY.response]
+header     = { bits = "0[]..3[]", struct = "header" }
+error_code = { bits = "4[0..7]", type = "command_error" }
+
+[enum.command_error]
+unspecified       = 0x01
+reply_overflow    = 0x02
+not_available     = 0x03
+not_supported     = 0x04
+BadFrequency      = 0x05
+command_not_found = 0x10
+bad_arg1          = 0x11
+bad_arg2          = 0x12
+bad_arg3          = 0x13
+bad_arg4          = 0x14
+bad_arg5          = 0x15
+bad_arg6          = 0x16
+bad_arg7          = 0x17
+command_busy      = 0x18
+at_band_limit     = 0x19
+bad_nvm           = 0x20
+bad_patch         = 0x30
+bad_bootmode      = 0x31
+bad_property      = 0x40
+not_acquired      = 0x50
+app_not_supported = 0xff
+
 
 [commands.GET_SYS_STATE]
 opcode       = 0x09
