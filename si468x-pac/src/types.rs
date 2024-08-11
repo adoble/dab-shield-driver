@@ -1,8 +1,9 @@
 /// Types used in the driver
 ///
 /// Generated with version 0.2.1 of ddgen
-
 use crate::error::DeviceError;
+
+pub trait Response: crate::header::HasHeader {}
 
 #[derive(PartialEq, Debug, Copy, Clone, Default)]
 pub enum ServiceType {

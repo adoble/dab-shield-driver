@@ -1,5 +1,3 @@
-use si468x_pac::set_property::SetPropertyRequest;
-
 #[allow(dead_code)]
 #[derive(Default, Clone, Copy)]
 pub enum FmProperties {

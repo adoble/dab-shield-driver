@@ -10,7 +10,7 @@ use embedded_hal::spi::{Operation, SpiDevice};
 use dab_shield_error::DabShieldError;
 use frequency_list::FrequencyList;
 use properties::DabProperties;
-use si468x_pac::host_image_data_loader::{self, HostImageDataLoader};
+//use si468x_pac::host_image_data_loader::{self};
 use si468x_pac::ClockMode;
 //use si468x_pac::boot::{BootRequest, BootResponse};
 use si468x_pac::error::DeviceError;
@@ -117,6 +117,19 @@ where
         // spiBuf[15] = 0x00;   arg15 = 0x00 (literal)
 
         // Power up
+        // let response: Result<si468x_pac::power_up::PowerUpResponse, DabShieldError> = si468x_pac::power_up(|req| {
+        //     req.cts_is_enabled = false;
+        //     req.clock_mode = ClockMode::XtalMode;
+        //     req.tr_size = 7;
+        //     req.ibais = 72;
+        //     req.xtal_frequency = 19200000;
+        //     req.ctun = 31;
+        //     req.ibias_run = 24;
+        // })
+        // .send(&mut self.spi)
+        // .map_err(|err| DabShieldError::Spi(err))
+        // .map(|r| DabShieldError::handle_command_error(&mut self.spi, r.header).map(|_| r))?;
+
         let response = si468x_pac::power_up(|req| {
             req.cts_is_enabled = false;
             req.clock_mode = ClockMode::XtalMode;
@@ -127,9 +140,12 @@ where
             req.ibias_run = 24;
         })
         .send(&mut self.spi)
-        .map_err(|err| DabShieldError::Spi(err))?;
+        // .map_err(DabShieldError::Spi)
+        // .and_then(|r| DabShieldError::handle_command_error(&mut self.spi, r).map(|_| r))?;
+        //.and_then(|r| DabShieldError::handle_command_error(&mut spi, r))
+        .map_err(DabShieldError::Spi)?;
 
-        dab_shield_error::handle_command_error(&mut self.spi, response.header)?;
+        DabShieldError::handle_command_error(&mut self.spi, response)?;
 
         // si468x_load_init();
         si468x_pac::load_init(|_| {})
@@ -140,7 +156,7 @@ where
         self.host_load()?;
         // si468x_load_init();
         self.load_init()?;
-        todo!();
+        Ok(())
     }
 
     fn init_dab(&mut self, frequency_list: &FrequencyList) -> Result<(), DabShieldError> {
@@ -290,7 +306,7 @@ mod tests {
     //use embedded_hal_nb::spi::FullDuplex;
 
     use embedded_hal_mock::eh1::delay::{CheckedDelay, NoopDelay, StdSleep, Transaction};
-    use host_image_data_loader::ROM_PATCH_016;
+
     use std::time::Duration;
 
     use pretty_assertions::{assert_eq, assert_ne};

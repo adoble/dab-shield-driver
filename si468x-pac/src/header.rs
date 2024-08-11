@@ -1,7 +1,6 @@
 /// Common structure used in the driver
 ///
 /// Generated with version 0.2.1 of ddgen
-
 use crate::deserialize::Deserialize;
 use crate::error::DeviceError;
 #[allow(unused_imports)]
@@ -11,6 +10,21 @@ use crate::response::{ResponseArray, ResponseBit, ResponseField, ResponseWord};
 use crate::serialize::Serialize;
 
 use crate::types::*;
+
+pub trait HasHeader {
+    fn cts(&self) -> bool;
+    fn err_cmd(&self) -> bool;
+    // fn dsrvint() -> bool;
+    // fn stcint() -> bool;
+    // fn dsp_err() -> bool;
+    // fn error_nr() -> bool;
+    // fn pup_state() -> PowerUpState;
+    // fn repo_fatal_error() -> bool;
+    // fn arb_error() -> bool;
+    // fn dacqint() -> bool;
+    // fn cmdo_fatal_error() -> bool;
+    // fn devntint() -> bool;
+}
 
 #[derive(Debug, PartialEq, Copy, Clone, Default)]
 pub struct Header {
@@ -34,7 +48,7 @@ pub struct Header {
 }
 
 impl Serialize for Header {
-    fn serialize<const N: usize>(&self) -> (usize, [u8; N], impl Iterator<Item=u8>) {
+    fn serialize<const N: usize>(&self) -> (usize, [u8; N], impl Iterator<Item = u8>) {
         let mut data = [0u8; N];
         #[allow(unused_variables)]
         let provider = core::iter::empty::<u8>();
@@ -54,13 +68,10 @@ impl Serialize for Header {
 
         (4, data, provider)
     }
-
 }
 
 impl Deserialize<Self> for Header {
-
     fn deserialize(buf: &[u8]) -> Result<Header, DeviceError> {
-
         let stcint = buf[0].deserialize_bit(0);
         let dsrvint = buf[0].deserialize_bit(4);
         let dacqint = buf[0].deserialize_bit(5);
@@ -88,7 +99,5 @@ impl Deserialize<Self> for Header {
             dsp_err,
             pup_state,
         })
-
     }
-
 }

@@ -1,27 +1,25 @@
 #![allow(unused_imports)]
-
 #![allow(clippy::unnecessary_cast)]
 
 /// Command PowerUp
 
-/// The POWER_UP initiates the boot process to move the device from power down to power up mode. 
+/// The POWER_UP initiates the boot process to move the device from power down to power up mode.
 
 /// Generated with version 0.2.1 of ddgen
-
 use embedded_hal::spi::SpiDevice;
 
 use crate::command::Command;
 use crate::deserialize::Deserialize;
 use crate::error::DeviceError;
 
-use crate::request::{RequestArray, RequestBit, RequestField, RequestWord, RequestStruct};
+use crate::request::{RequestArray, RequestBit, RequestField, RequestStruct, RequestWord};
 use crate::response::{ResponseArray, ResponseBit, ResponseField, ResponseWord};
 use crate::serialize::Serialize;
 use crate::types::*;
 
 use crate::transmit::Transmit;
 
-use crate::header::Header;
+use crate::header::{HasHeader, Header};
 
 #[derive(Debug, PartialEq)]
 pub struct PowerUpRequest {
@@ -68,7 +66,7 @@ impl Default for PowerUpRequest {
 }
 
 impl Serialize for PowerUpRequest {
-    fn serialize<const N: usize>(&self) -> (usize, [u8; N], impl Iterator<Item=u8>) {
+    fn serialize<const N: usize>(&self) -> (usize, [u8; N], impl Iterator<Item = u8>) {
         let mut data = [0u8; N];
         #[allow(unused_variables)]
         let provider = core::iter::empty::<u8>();
@@ -89,7 +87,6 @@ impl Serialize for PowerUpRequest {
 
         (15, data, provider)
     }
-
 }
 
 #[derive(Debug, PartialEq)]
@@ -98,36 +95,46 @@ pub struct PowerUpResponse {
 }
 
 impl Deserialize<Self> for PowerUpResponse {
-
     fn deserialize(buf: &[u8]) -> Result<PowerUpResponse, DeviceError> {
-
         let header = Header::deserialize(&buf[0..=3])?;
 
-        Ok(Self {
-            header,
-        })
-
+        Ok(Self { header })
     }
-
 }
 
 impl PowerUpRequest {
-pub fn send<SPI: SpiDevice>(&self, spi: &mut SPI) -> Result<PowerUpResponse, DeviceError> {
-    let f = | h: Header | h.cts;
+    pub fn send<SPI: SpiDevice>(&self, spi: &mut SPI) -> Result<PowerUpResponse, DeviceError> {
+        let f = |h: Header| h.cts;
 
-    const REQUEST_BUF_LEN: usize = 15;
-    const RESPONSE_BUF_LEN: usize = 4;
-    const STATUS_HEADER_LEN: usize = 4;
+        const REQUEST_BUF_LEN: usize = 15;
+        const RESPONSE_BUF_LEN: usize = 4;
+        const STATUS_HEADER_LEN: usize = 4;
 
-    let response = self.polled_transmit::<REQUEST_BUF_LEN, RESPONSE_BUF_LEN, Header, STATUS_HEADER_LEN>(spi, f)?;
+        let response = self
+            .polled_transmit::<REQUEST_BUF_LEN, RESPONSE_BUF_LEN, Header, STATUS_HEADER_LEN>(
+                spi, f,
+            )?;
 
-    Ok(response)
-}}
+        Ok(response)
+    }
+}
 
 impl<SPI: SpiDevice> Transmit<SPI, PowerUpResponse> for PowerUpRequest {}
 
 impl Command for PowerUpRequest {
     fn opcode(&self) -> u8 {
         0x1
+    }
+}
+
+impl Response for PowerUpResponse {}
+
+impl HasHeader for PowerUpResponse {
+    fn cts(&self) -> bool {
+        self.header.cts
+    }
+
+    fn err_cmd(&self) -> bool {
+        self.header.err_cmd
     }
 }

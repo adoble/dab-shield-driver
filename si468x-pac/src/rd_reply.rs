@@ -34,7 +34,7 @@ impl Default for RdReplyRequest {
 
 impl Serialize for RdReplyRequest {
     fn serialize<const N: usize>(&self) -> (usize, [u8; N], impl Iterator<Item = u8>) {
-        let mut data = [0u8; N];
+        let data = [0u8; N];
         #[allow(unused_variables)]
         let provider = core::iter::empty::<u8>();
 
